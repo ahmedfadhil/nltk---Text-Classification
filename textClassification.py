@@ -40,3 +40,11 @@ def find_features(document):
 print((find_features(movie_reviews.words("neg/cv000_29416.txt"))))
 featuresets = [(find_features(rev), category) for (rev, category) in documents]
 
+training_set = featuresets[:1900]
+test_set = featuresets[1900:]
+
+classifier = nltk.NaiveBayesClassifier.train(training_set)
+
+print("NaiveBayes  Algo accuracy percent:", (nltk.classify.accuracy(classifier, test_set)) * 100)
+
+classifier.show_most_informative_features(15)

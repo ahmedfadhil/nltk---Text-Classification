@@ -8,6 +8,7 @@ from sklearn.linear_model import LogisticRegression, SGDClassifier
 from sklearn.svm import SVC, LinearSVC, NuSVC
 from nltk.classify import ClassifierI
 from statistics import mode
+from nltk.tokenize import word_tokenize
 
 
 class VoteClassifier(ClassifierI):
@@ -31,23 +32,44 @@ class VoteClassifier(ClassifierI):
         return conf
 
 
-documents = [(list(movie_reviews.words(fileid)), category)
-             for category in movie_reviews.categories()
-             for fileid in movie_reviews.fileids(category)]
+# documents = [(list(movie_reviews.words(fileid)), category)
+#              for category in movie_reviews.categories()
+#              for fileid in movie_reviews.fileids(category)]
 
 # documents = []
 # for category in movie_reviews.categoes:
 #     for fileid in movie_reviews.fileids(category):
 #         documents.append(list(movie_reviews.words(fileid)), category)
 
+# We commented it out to test for the positive and negative
+# random.shuffle(documents)
 
-random.shuffle(documents)
+# print(documents[1])
+#
+# all_words = []
+#
+# for w in movie_reviews.words():
+#     all_words.append(w.lower())
 
-print(documents[1])
+short_pos = open("Sentiment Data/positive.txt", "r").read()
+short_neg = open("Sentiment Data/negative.txt", "r").read()
+
+documents = []
+for r in short_pos('\n'):
+    documents.append((r, "pos"))
+
+for r in short_neg('\n'):
+    documents.append((r, "neg"))
 
 all_words = []
 
-for w in movie_reviews.words():
+short_pos_words = word_tokenize(short_pos)
+short_neg_words = word_tokenize(short_neg)
+
+for w in short_pos_words:
+    all_words.append(w.lower())
+
+for w in short_neg_words:
     all_words.append(w.lower())
 
 all_words = nltk.FreqDist(all_words)
@@ -55,11 +77,11 @@ all_words = nltk.FreqDist(all_words)
 # print(all_words.most_common(23))
 # print(all_words["whack"])
 
-word_features = list(all_words.keys())[:3000]
+word_features = list(all_words.keys())[:5000]
 
 
 def find_features(document):
-    words = set(document)
+    words = word_tokenize(document)
     features = {}
     for w in word_features:
         features[w] = (w in words)
@@ -69,13 +91,19 @@ def find_features(document):
 print((find_features(movie_reviews.words("neg/cv000_29416.txt"))))
 featuresets = [(find_features(rev), category) for (rev, category) in documents]
 
-training_set = featuresets[:1900]
-test_set = featuresets[1900:]
+random.shuffle(featuresets)
+# Positive
+training_set = featuresets[:10000]
+test_set = featuresets[10000:]
+
+# # Negative
+# training_set = featuresets[100:]
+# test_set = featuresets[:100]
 
 classifier = nltk.NaiveBayesClassifier.train(training_set)
-classifier_f = open("Naivebayes.pickle", "rb")
-classifier = pickle.load(classifier_f)
-classifier_f.close()
+# classifier_f = open("Naivebayes.pickle", "rb")
+# classifier = pickle.load(classifier_f)
+# classifier_f.close()
 
 print("NaiveBayes  Algo accuracy percent:", (nltk.classify.accuracy(classifier, test_set)) * 100)
 

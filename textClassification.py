@@ -6,6 +6,30 @@ from nltk.classify.scikitlearn import SklearnClassifier
 from sklearn.naive_bayes import MultinomialNB, BernoulliNB, GaussianNB
 from sklearn.linear_model import LogisticRegression, SGDClassifier
 from sklearn.svm import SVC, LinearSVC, NuSVC
+from nltk.classify import ClassifierI
+from statistics import mode
+
+
+class VoteClassifier(ClassifierI):
+    def __init__(self, *classifiers):
+        self._classifiers = classifier
+
+    def classify(self, features):
+        votes = []
+        for c in self._classifiers:
+            v = c.classify(features)
+            votes.append(v)
+        return mode(votes)
+
+    def confidence(self, features):
+        votes = []
+        for c in self._classifiers:
+            v = c.classify(features)
+            votes.append(v)
+        choice_votes = votes.count(mode(votes))
+        conf = choice_votes / len(votes)
+        return conf
+
 
 documents = [(list(movie_reviews.words(fileid)), category)
              for category in movie_reviews.categories()
@@ -103,3 +127,20 @@ print("LinearSVC Classifier Algo accuracy percent:", (nltk.classify.accuracy(Lin
 NuSVC_classifier = SklearnClassifier(NuSVC)
 NuSVC_classifier.train(training_set)
 print("NuSVC Classifier Algo accuracy percent:", (nltk.classify.accuracy(NuSVC_classifier, test_set)) * 100)
+
+# Classifier count
+voted_classifier = VoteClassifier(classifier, NuSVC, LinearSVC, LogisticRegression, SVC, SGDClassifier,
+                                  GaussianNB_classifier, BernoulliNB_classifier, MNB_classifier)
+print("Voted Classifier Algo accuracy percent:", (nltk.classify.accuracy(voted_classifier, test_set)) * 100)
+print("Classification:", voted_classifier.classify(test_set[0][0]), "Confidence %:",
+      voted_classifier.confidence(test_set[0][0]) * 100)
+print("Classification:", voted_classifier.classify(test_set[1][0]), "Confidence %:",
+      voted_classifier.confidence(test_set[1][0]) * 100)
+print("Classification:", voted_classifier.classify(test_set[2][0]), "Confidence %:",
+      voted_classifier.confidence(test_set[2][0]) * 100)
+print("Classification:", voted_classifier.classify(test_set[3][0]), "Confidence %:",
+      voted_classifier.confidence(test_set[3][0]) * 100)
+print("Classification:", voted_classifier.classify(test_set[4][0]), "Confidence %:",
+      voted_classifier.confidence(test_set[4][0]) * 100)
+print("Classification:", voted_classifier.classify(test_set[5][0]), "Confidence %:",
+      voted_classifier.confidence(test_set[5][0]) * 100)
